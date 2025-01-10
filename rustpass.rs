@@ -1,7 +1,9 @@
 use std::env;
 use std::fs::File;
-use std::io::Write;
-use std::io::Read;
+use std::io::{Read, Write};
+use sha2::{Sha512, Digest};
+use hex;
+
 
 // Creates shadow file if doesn't exist, then writes username and password to it
 fn file_write(file: &str, 
@@ -34,15 +36,17 @@ fn file_read(file: &str) -> String {
     contents
 }
 
-// Encrypt password with simple ROT encryption
-// TODO: change this to secure encryption
+// Encrypt password with Sha512 hashing
+// TODO: add random salt to increase security
 fn encrypt(password: &str) -> String {
-    let encrypt_pass: String = password.chars()
-        .map(|x| x as u8)
-        .map(|x| (x - 12) as char)
-        .collect();
-    encrypt_pass
+    let mut hasher = Sha512::new();
+    hasher.update(password.as_bytes());
+    let hash = hasher.finalize();
+    let hash_enc = hex::encode(hash);
+    hash_enc
 }
+
+
 
 // Compare username and password to entries in shadow file
 fn authenticate(username: &str, password: &String) -> bool {
